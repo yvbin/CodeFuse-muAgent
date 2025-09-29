@@ -27,10 +27,14 @@ jobs:
 
       - name: Build the Docker image
         run: |
-          # 登录阿里云镜像仓库
+          # 登录阿里云镜像仓库 (成都地域)
           docker login --username=${{ secrets.ALIYUN_USERNAME }} --password=${{ secrets.ALIYUN_PASSWORD }} crpi-6pnfau7kx5q4ttr8.cn-chengdu.personal.cr.aliyuncs.com
 
-          # 使用Dockerfile构建镜像
+          # 拉取 ghcr.io 的镜像
           docker pull --platform ${{ matrix.os }}/${{ matrix.architecture }}  ghcr.io/codefuse-ai/${{ matrix.service.name }}
-          docker tag ghcr.io/codefuse-ai/${{ matrix.service.name }} registry.cn-hangzhou.aliyuncs.com/jmuagent/${{ matrix.service.name }}-${{ matrix.architecture }}
-          docker push registry.cn-hangzhou.aliyuncs.com/jmuagent/${{ matrix.service.name }}-${{ matrix.architecture }}
+          
+          # 使用【正确】的成都地域地址为镜像打标签
+          docker tag ghcr.io/codefuse-ai/${{ matrix.service.name }} crpi-6pnfau7kx5q4ttr8.cn-chengdu.personal.cr.aliyuncs.com/jmuagent/${{ matrix.service.name }}-${{ matrix.architecture }}
+          
+          # 推送镜像到【正确】的成都地域仓库
+          docker push crpi-6pnfau7kx5q4ttr8.cn-chengdu.personal.cr.aliyuncs.com/jmuagent/${{ matrix.service.name }}-${{ matrix.architecture }}
