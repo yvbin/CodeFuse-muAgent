@@ -1,0 +1,38 @@
+name: Push Node.js to Aliyun ACR
+
+on:
+  workflow_dispatch:  # 允许手动触发工作流
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # 仍然保留对不同CPU架构的支持
+        architecture: [amd64, arm64] 
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Pull, Tag and Push Node.js to Aliyun ACR
+        run: |
+          # 1. 登录阿里云镜像仓库
+          # !! 请将下面的 "crpi-xxxxxxxx..." 替换为您自己的个人实例地址
+          # !! 请确保已经在 GitHub Secrets 中配置了 ALIYUN_USERNAME 和 ALIYUN_PASSWORD
+          docker login --username=${{ secrets.ALIYUN_USERNAME }} --password=${{ secrets.ALIYUN_PASSWORD }} crpi-6pnfau7kx5q4ttr8.cn-chengdu.personal.cr.aliyuncs.com
+
+          # 2. 拉取官方 Node.js 镜像
+          # --platform 参数确保拉取指定架构的镜像
+          docker pull --platform linux/${{ matrix.architecture }} node:20.18.0-bookworm
+
+          # 3. 为镜像打上符合阿里云仓库规范的标签
+          # !! 请将下面的 "jmuagent" 替换为您自己的命名空间
+          docker tag node:20.18.0-bookworm crpi-6pnfau7kx5q4ttr8.cn-chengdu.personal.cr.aliyuncs.com/jmuagent/node:20.18.0-bookworm-${{ matrix.architecture }}
+
+          # 4. 将镜像推送到您的阿里云仓库
+          # !! 请将下面的 "jmuagent" 替换为您自己的命名空间
+          docker push crpi-6pnfau7kx5q4ttr8.cn-chengdu.personal.cr.aliyuncs.com/jmuagent/node:20.18.0-bookworm-${{ matrix.architecture }}
