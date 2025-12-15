@@ -1,0 +1,32 @@
+name: Push AstrBot Sandbox to Aliyun
+
+on:
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  push-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Aliyun ACR
+        # 登录阿里云镜像仓库
+        uses: docker/login-action@v2
+        with:
+          registry: crpi-6pnfau7kx5q4ttr8.cn-chengdu.personal.cr.aliyuncs.com
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Pull Image from Docker Hub
+        # 拉取原始镜像
+        run: |
+          docker pull soulter/astrbot-code-interpreter-sandbox:latest
+
+      - name: Tag Image
+        # 打标签，重命名为阿里云的格式
+        # 我把名字简化为了 astrbot-sandbox，方便你在内网输入
+        run: |
+          docker tag soulter/astrbot-code-interpreter-sandbox:latest crpi-6pnfau7kx5q4ttr8.cn-chengdu.personal.cr.aliyuncs.com/jmuagent/astrbot-code-interpreter-sandbox:latest
+
+      - name: Push Image to Aliyun
+        # 推送到你的阿里云仓库
+        run: |
+          docker push crpi-6pnfau7kx5q4ttr8.cn-chengdu.personal.cr.aliyuncs.com/jmuagent/astrbot-code-interpreter-sandbox:latest
